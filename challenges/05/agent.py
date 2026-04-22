@@ -24,7 +24,7 @@ RULES:
 - Output ONLY the answer. No explanation. No filler words. No preamble.
 - If the question asks who/what is highest/greatest/largest/most/biggest, return only the name of that thing.
 - If the question asks who/what is lowest/least/smallest/worst, return only the name of that thing.
-- If two things are exactly equal, respond with exactly: Equal
+- If two things are exactly equal, respond with the names of those two things separated by a space and first letter capitalized.
 - If items are not numbers (e.g. names, words, objects), compare them by length/size as appropriate and return what is asked.
 - Match the exact format of the expected answer. Single word or name only.
 
