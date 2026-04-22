@@ -1,13 +1,9 @@
 """
 Challenge 01 — Agent
-Level 1: Basic formatting / arithmetic queries.
+Level 1: Basic formatting / general queries.
 
-Strategy for max cosine similarity:
-  - Single deterministic LLM call with a densely few-shot prompt that locks
-    in the exact sentence structure the eval engine expects.
-  - Post-process to guarantee correct terminal punctuation (period).
-  - temperature=0.0 for zero variance.
-  - Distillation is NOT used — it over-compresses and kills cosine similarity.
+Strategy: Minimal rule-based prompt — no few-shot examples, no token cap.
+The model reads the question's tone and matches answer length accordingly.
 """
 
 import os
@@ -24,120 +20,31 @@ def _get_client() -> Groq:
     return _client
 
 
-# Dense few-shot prompt.  The examples show the exact output vocabulary
-# and format the eval engine compares against.  More examples = stronger
-# in-context learning signal for unseen hidden test cases.
 SYSTEM_PROMPT = """\
-You are an answer engine. Output ONLY the answer — one sentence, no preamble, \
-no filler, no markdown.
+You are a precise answer engine. Your job is to answer questions directly \
+and correctly, matching the tone and expected length of the question.
 
-FORMAT RULES:
-- Arithmetic  → "The <word> is <value>."
-    +  addition   → sum       e.g. "The sum is 25."
-    -  subtract   → difference e.g. "The difference is 63."
-    *  multiply   → product   e.g. "The product is 42."
-    /  divide     → quotient  e.g. "The quotient is 12."
-    %  modulo     → remainder e.g. "The remainder is 2."
-    ** power      → result    e.g. "The result is 256."
-- Yes/No       → "Yes." or "No." only (no extra words).
-- Factual      → one short sentence, exactly as a textbook answer key.
-- Never say "I", "Sure", "Of course", "Certainly", "Here is", "The answer is".
-- Never repeat the question.
-- Capitalise only the first word. End with a period.
-
-EXAMPLES:
-Q: What is 10 + 15?
-A: The sum is 25.
-
-Q: What is 100 - 37?
-A: The difference is 63.
-
-Q: What is 6 * 7?
-A: The product is 42.
-
-Q: What is 144 / 12?
-A: The quotient is 12.
-
-Q: What is 17 % 5?
-A: The remainder is 2.
-
-Q: What is 2 ** 8?
-A: The result is 256.
-
-Q: What is 2 to the power of 10?
-A: The result is 1024.
-
-Q: Is 17 a prime number?
-A: Yes.
-
-Q: Is 4 an odd number?
-A: No.
-
-Q: Is the sky blue?
-A: Yes.
-
-Q: What is the capital of France?
-A: Paris.
-
-Q: Who wrote Hamlet?
-A: William Shakespeare.
-
-Q: What is the boiling point of water in Celsius?
-A: 100 degrees Celsius.
-
-Q: What does HTTP stand for?
-A: HyperText Transfer Protocol.
-
-Q: What is the largest planet in the solar system?
-A: Jupiter.
-
-Q: What colour is a banana?
-A: Yellow.
-
-Q: Name three primary colors.
-A: Red, blue, and yellow.
-
-Q: What is the speed of light?
-A: 299,792,458 metres per second.
-
-Q: How many sides does a hexagon have?
-A: Six.
-
-Q: What is the chemical symbol for gold?
-A: Au.
-
-Q: What is the square root of 144?
-A: 12.
-
-Q: What is 50% of 200?
-A: The result is 100.
-
-Q: Convert 0 degrees Celsius to Fahrenheit.
-A: 32 degrees Fahrenheit.
-
-Q: What year did World War II end?
-A: 1945.
-
-Q: What is the plural of "mouse"?
-A: Mice.
+RULES:
+1. Match the question's implied format. If it asks for a single value, \
+   give a single value. If it asks you to list or recite something, do so \
+   in full.
+2. Never use conversational filler: no "Sure!", "Of course!", "Certainly!", \
+   "I think", "Here is", "Great question", or any similar phrases.
+3. Never repeat or rephrase the question in your answer.
+4. Do not add explanations, caveats, or extra commentary unless the question \
+   explicitly asks for them.
+5. Match punctuation intuitively to the question — use whatever punctuation \
+   a clean, professional answer would naturally have.
+6. Output plain text only. No markdown, no bullet points, no headers, unless \
+   the question explicitly asks for a structured format.
 """
 
 
 def _clean(text: str) -> str:
-    """
-    Light post-processing:
-    - Strip leading/trailing whitespace and quotes
-    - Ensure answer ends with a period (if it doesn't end with punctuation)
-    - Collapse multiple spaces
-    """
-    text = text.strip().strip('"').strip("'").strip()
-    text = re.sub(r"\s+", " ", text)
-    # Remove any "A:" prefix the model might accidentally include
+    """Strip accidental leading 'A:' prefix the model may echo."""
+    text = text.strip()
     text = re.sub(r"^A:\s*", "", text, flags=re.IGNORECASE)
-    # Ensure terminal punctuation
-    if text and text[-1] not in ".!?":
-        text += "."
-    return text
+    return text.strip()
 
 
 def run(query: str, assets: list[str] | None = None) -> str:
@@ -159,11 +66,9 @@ def run(query: str, assets: list[str] | None = None) -> str:
         model=os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b"),
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user",   "content": f"Q: {query}\nA:"},
+            {"role": "user",   "content": query},
         ],
         temperature=0.0,
-        max_tokens=80,   # answers at this level are ≤ ~15 words
-        stop=["\n", "Q:"],  # stop before the model generates a new Q/A pair
     )
 
     raw = response.choices[0].message.content
