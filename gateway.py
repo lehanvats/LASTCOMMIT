@@ -16,8 +16,8 @@ import re
 import glob
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 
 load_dotenv()
@@ -144,7 +144,7 @@ async def _dispatch(challenge_id: str, payload: QueryPayload) -> JSONResponse:
         print(f"[{challenge_id}] ERROR: {str(exc)}", flush=True)
         raise HTTPException(500, str(exc))
 
-    return JSONResponse(content={"output": result})
+    return PlainTextResponse(content=str(result).strip())
 
 
 # Register a dedicated route for each challenge
