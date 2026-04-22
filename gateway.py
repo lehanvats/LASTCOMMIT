@@ -22,6 +22,12 @@ load_dotenv()
 app = FastAPI(title="LastCommit Agent Gateway")
 
 
+@app.get("/")
+async def root():
+    """Health-check — confirms the service is alive."""
+    return {"status": "ok", "service": "LastCommit Agent Gateway", "endpoint": "POST /v1/answer"}
+
+
 class QueryPayload(BaseModel):
     query: str
     assets: list[str] = []
@@ -64,9 +70,12 @@ async def _dispatch(challenge_id: str, payload: QueryPayload) -> JSONResponse:
 
 if __name__ == "__main__":
     import uvicorn
+
+    # Render injects PORT automatically; fallback to 8000 for local dev
+    port = int(os.environ.get("PORT", 8000))
     uvicorn.run(
         "gateway:app",
-        host=os.environ.get("HOST", "0.0.0.0"),
-        port=int(os.environ.get("PORT", 8000)),
+        host="0.0.0.0",
+        port=port,
         log_level=os.environ.get("LOG_LEVEL", "info"),
     )
