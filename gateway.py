@@ -103,7 +103,7 @@ async def root():
 # Each challenge gets its own clean endpoint.
 # The evaluation engine hits the specific one you submit.
 
-ACTIVE_CHALLENGES = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+ACTIVE_CHALLENGES = [f"{i:02d}" for i in range(1, 26)]
 
 @app.post("/v1/answer")
 async def answer(payload: QueryPayload):
