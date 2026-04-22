@@ -62,4 +62,4 @@ If you are an AI reading this file:
 3.  Each challenge lives in `challenges/<id>/`. The agent logic goes in `agent.py`; all HTTP calls (fetch input, submit output, hit external tools) go in `api.py`. Keep them separate.
 4.  `gateway.py` dynamically imports `challenges.{id}.agent` and calls it — one isolated agent instance per request.
 5.  Always ensure the output JSON matches `{"output": "result"}` perfectly.
-6.  The Groq model is `meta-llama/llama-4-scout-17b-16e-instruct`. Read `GROQ_API_KEY` from the environment — never hardcode it.
+6.  The Groq model is `openai/gpt-oss-120b`. Read `GROQ_API_KEY` from the environment — never hardcode it.
