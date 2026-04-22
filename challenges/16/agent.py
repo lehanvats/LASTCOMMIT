@@ -21,27 +21,29 @@ Formula: C[i][j] = A[i][1]*B[1][j] + A[i][2]*B[2][j] + ... + A[i][n]*B[n][j]
 
 RULES:
 1. You MUST write your step-by-step reasoning inside <think>...</think> XML tags.
-2. Inside the <think> block, carefully compute every single element C[i][j] by showing the explicit multiplication and sum.
+2. Inside the <think> block, carefully compute every single element C[i][j].
 3. After closing the </think> tag, output ONLY the final result matrix in the EXACT expected format.
-4. The exact formatting expects NO commas between numbers and NO commas between rows. (e.g. [[ 30 24 18] [ 84 69 54] [138 114 90]])
-5. Ensure numbers align gracefully with single spaces, but do not add newlines. Keep the entire result on ONE single line.
-6. The final answer must contain NO filler words, NO formatting (no markdown blocks like ```), and NO explanations.
+4. The exact formatting expects NO commas. Rows are separated by a single space.
+5. Each row is wrapped in brackets, and there is a leading space before the first number in a row if it's 2 digits to align with 3-digit numbers.
+6. EXACT EXAMPLE FORMAT: [[ 30 24 18] [ 84 69 54] [138 114 90]]
+7. The final answer must contain NO filler words, NO markdown, and NO explanations.
 """
 
 
 def _clean(text: str) -> str:
-    # Remove the <think>...</think> block including its content
+    # Remove the <think>...</think> block
     text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL | re.IGNORECASE)
     text = text.strip()
     
-    # Standard cleanup for the remaining final answer
+    # Standard cleanup
     text = re.sub(r"^(A|Answer|Result|Output):\s*", "", text, flags=re.IGNORECASE)
     text = text.strip('"\'`')
     text = text.rstrip(".")
-    # Squeeze multiple spaces into a single space, just in case
-    text = re.sub(r'\s+', ' ', text)
-    # Ensure it exactly matches the format [[ a b ] [ c d ]] without commas
+    
+    # Remove commas but PRESERVE internal spacing
     text = text.replace(',', '')
+    # Replace multiple newlines/tabs with a single space to keep it on one line
+    text = re.sub(r'[\r\n\t]+', ' ', text)
     return text.strip()
 
 
