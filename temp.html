@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WNRX3M9ZS8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-WNRX3M9ZS8');
+</script>
+<!-- END Google tag (gtag.js) -->
+
+<title>
+Buttons | 
+
+
+
+
+Simple Button
+
+
+
+ | QA Practice</title>
+
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.2.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+
+
+
+
+
+<!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.min.js" integrity="sha384-ODmDIVzN+pFdexxHEHFBQH3/9/vQ9uori45z4JjnFsRydbmQbmL5t1tQ0culUzyK" crossorigin="anonymous"></script>-->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/v4-shims.css">
+<script src="/static/home/js/main.js"></script>
+<link rel="stylesheet" href="/static/home/css/header.css">
+<script src="/static/home/js/header.js"></script>
+
+<link href="/static/home/styles/main.css" rel="stylesheet" type="text/css" />
+<script>
+<!--  $(".rect-draggable").draggable({cursor: 'move'});-->
+  $( function() {
+    $( ".rect-draggable" ).draggable({cursor: 'move'});
+    $( ".rect-droppable" ).droppable({
+      drop: function( event, ui ) {
+        event.stopPropagation()
+        ui.draggable.attr("style", '')
+        $( this ).append(ui.draggable);
+        $( this )
+          .addClass( "ui-state-highlight" )
+          .find( "p" )
+            .html( "Dropped!" );
+        $( ".text-droppable" ).toggle();
+      }
+    });
+  } );
+</script>
+<script>
+  function showReq(url, thing_id) {
+    
+<!--    $("#req_text").toggle();-->
+    $("#caret-down").toggle();
+    var caret = $("#caret-up").css("display")
+    if (caret === "none") {
+      $("#caret-up").css("display", "inline");
+    } else {
+      $("#caret-up").css("display", "none");
+    }
+    
+    
+  }
+
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+ 
+
+</head>
+<body>
+<div class="page-content">
+ 
+
+
+
+<div class="site_header">
+  
+  <img src="/static/home/logo.png" class="logo_image">
+</div>
+
+
+    
+
+
+<!-- begin #sidebar -->
+
+
+
+
+
+
+
+
+
+
+
+
+<div id="page-container" class="page-header-fixed page-sidebar-fixed">
+    <div id="sidebar" class="sidebar">
+      <!-- begin sidebar scrollbar -->
+      
+        <div data-scrollbar="true">
+        <!-- begin sidebar nav -->
+        <ul class="nav">
+          <li >
+            <a href="/">
+              <i class="fa fa-th-large"></i>
+              <span>Homepage</span>
+            </a>
+            <ul class="sub-menu active">
+              <li><a href="index.html">Dashboard v1</a></li>
+              <li><a href="index_v2.html">Dashboard v2</a></li>
+            </ul>
+          </li>
+          <li class="has-sub expand active">
+            <a href="javascript:;">
+              <b class="caret"></b>
+              <i class="fa fa-gem"></i>
+              <span>Single UI Elements</span></span> 
+            </a>
+            <ul class="sub-menu" style="display: block;">
+              <li ><a href="/elements/input">Inputs</a></li>
+              <li class="active"><a href="/elements/button">Buttons</a></li>
+              <li ><a href="/elements/checkbox">Checkbox</a></li>
+              <li ><a href="/elements/select">Select</a></li>
+              <li ><a href="/elements/new_tab">New tab</a></li>
+              <li ><a href="/elements/textarea">Text area</a></li>
+              <li ><a href="/elements/alert">Alerts</a></li>
+              <li ><a href="/elements/dragndrop">Drag and Drop</a></li>
+              <li ><a href="/elements/iframe/iframe_page">Iframes</a></li>
+              <li ><a href="/elements/popup">Pop-Up</a></li>
+            </ul>
+          </li>
+          <li class="has-sub">
+            <a href="javascript:;">
+              <b class="caret"></b>
+              <i class="fa fa-file-alt"></i>
+              <span>Forms</span>
+            </a>
+            <ul class="sub-menu">
+              <li ><a href="/forms/practice-form">Practice Form</a></li>
+            </ul>
+          </li>
+          
+          
+            </ul>
+          </li>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+        </ul>
+        <!-- end sidebar nav -->
+      </div>
+      <!-- end sidebar scrollbar -->
+    </div>
+    
+    <!-- end #sidebar -->
+  
+  
+
+<div id="content" class="content">
+    <h1>Buttons</h1>
+    <ul class="tabs">
+        
+        <li class="tab active">
+            <a href="/elements/button/simple">Simple button</a>
+        </li>
+
+        
+        <li class="tab">
+            <a href="/elements/button/like_a_button">Looks like a button</a>
+        </li>
+        
+        <li class="tab">
+            <a href="/elements/button/disabled">Disabled</a>
+        </li>
+    </ul>
+
+
+
+
+
+
+<form method="post">
+    
+    
+
+<form  method="post" > <input type="hidden" name="csrfmiddlewaretoken" value="bpXjawaH0lAo3Nb8RMMlig9Zbo4hdl31bO5hliheTK7FUWJh79mtKnOvsMJW1oLD"> <input type="submit"
+    name="submit"
+    value="Click"
+    
+        class="btn btn-primary"
+        id="submit-id-submit"
+    
+    
+    /> </form>
+
+</form>
+
+
+
+
+<a href="#req_text" id="req_header" data-bs-toggle="collapse" aria-expanded="false" aria-controls="req_text" role="button" onclick="showReq()">
+    <svg id="caret-down" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-caret-down" viewBox="0 0 16 16">
+        <path d="M3.204 5h9.592L8 10.481 3.204 5zm-.753.659 4.796 5.48a1 1 0 0 0 1.506 0l4.796-5.48c.566-.647.106-1.659-.753-1.659H3.204a1 1 0 0 0-.753 1.659z"/>
+      </svg><svg id="caret-up" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-caret-up" viewBox="0 0 16 16">
+        <path d="M3.204 11h9.592L8 5.519 3.204 11zm-.753-.659 4.796-5.48a1 1 0 0 1 1.506 0l4.796 5.48c.566.647.106 1.659-.753 1.659H3.204a1 1 0 0 1-.753-1.659z"/>
+      </svg>Requirements:</a>
+    <div id="req_text" class="collapse">
+        <div class="card card-body">
+            
+        <ul>
+            <li>The user should be able to click the button.</li>
+            <li>The button should be labeled Click.</li>
+            <li>After pressing the button, the user should be shown confirmation that the button was pressed.</li>
+        </ul>
+        
+        
+        </div>
+
+    </div>
+    
+    
+
+</div>
+
+</div>
+
+
+</div>
+
+
+
+<div class="container clearfix"></div>
+
+<div class="p-4 pb-0 footer-links">
+      <a href="/contact/">Contact</a>
+      <a href="/whats_new/">What's new</a>
+</div>
+<footer class="text-center text-lg-start">
+  
+  <!-- Copyright -->
+  <div class="text-center p-3">
+    © 2026 Copyright:
+    <a href="https://www.qa-practice.com/">www.qa-practice.com</a>
+  </div>
+  <!-- Copyright -->
+</footer>
+
+</body>
+</html>
