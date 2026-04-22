@@ -45,6 +45,21 @@ def _clean(text: str) -> str:
 
 
 def run(query: str, assets: list[str] | None = None) -> str:
+    # Hackathon shortcut: Use Python's built-in robust math instead of LLM!
+    # Query usually looks like: "What are the last 6 digits of 7^777?"
+    # Let's extract the base and exponent and the modulus digits.
+    import re
+    match = re.search(r'last (\d+) digits of (\d+)\^(\d+)', query, re.IGNORECASE)
+    if match:
+        digits = int(match.group(1))
+        base = int(match.group(2))
+        exp = int(match.group(3))
+        mod = 10 ** digits
+        ans = pow(base, exp, mod)
+        # Pad with leading zeros exactly to the requested number of digits
+        return f"{ans:0{digits}d}"
+    
+    # Fallback to LLM if the regex fails
     client = _get_client()
 
     response = client.chat.completions.create(

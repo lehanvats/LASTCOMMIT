@@ -40,3 +40,5 @@ coverage.xml
 .render-buildpacks.json
 
 scratch
+challenges/01
+.challenges/02
