@@ -61,7 +61,9 @@ async def _dispatch(challenge_id: str, payload: QueryPayload) -> JSONResponse:
         result = agent.run(payload.query, payload.assets or None)
         if hasattr(result, "__await__"):
             result = await result
+        print(f"[{challenge_id}] INPUT: {payload.query}  =>  OUTPUT: {result}", flush=True)
     except Exception as exc:
+        print(f"[{challenge_id}] ERROR: {str(exc)}", flush=True)
         raise HTTPException(500, str(exc))
 
     return JSONResponse(content={"output": result})
