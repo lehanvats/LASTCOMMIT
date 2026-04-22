@@ -25,31 +25,32 @@ load_dotenv()
 app = FastAPI(title="LastCommit Agent Gateway")
 
 def fix_payload(s: str) -> str:
+    # 1. Fix trailing commas in arrays/objects: [1, 2, ] -> [1, 2]
+    s = re.sub(r',\s*([\]}])', r'\1', s)
+    
+    # 2. Fix unescaped quotes and raw newlines in "query"
     match_start = re.search(r'"query"\s*:\s*"', s)
     if not match_start:
         return s
     start_idx = match_start.end()
     
-    if '"assets"' in s[start_idx:]:
-        match_end = re.search(r'"\s*,\s*"assets"', s[start_idx:])
-        if match_end:
-            end_idx = start_idx + match_end.start()
-            query_val = s[start_idx:end_idx]
-            query_val = query_val.replace('\\"', '"').replace('"', '\\"')
-            return s[:start_idx] + query_val + s[end_idx:]
-            
-    match_end = re.search(r'"\s*}', s[start_idx:])
-    if match_end:
-        last_brace = s.rfind('}')
-        if last_brace != -1:
-            last_quote = s.rfind('"', start_idx, last_brace)
-            # Make sure there are only spaces between last_quote and last_brace
-            if s[last_quote+1:last_brace].strip() == '':
-                query_val = s[start_idx:last_quote]
-                query_val = query_val.replace('\\"', '"').replace('"', '\\"')
-                return s[:start_idx] + query_val + s[last_quote:]
-                
-    return s
+    # Find the boundary of the query value
+    # It ends at either ", "assets" or the final " before }
+    boundary_match = re.search(r'"\s*,\s*"assets"|"\s*}', s[start_idx:])
+    if not boundary_match:
+        return s
+    
+    end_idx = start_idx + boundary_match.start()
+    query_val = s[start_idx:end_idx]
+    
+    # Escape raw newlines and tabs which are invalid in JSON strings
+    query_val = query_val.replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
+    
+    # Escape unescaped double quotes
+    # Normalize by converting all \" to " then escaping all " to \"
+    query_val = query_val.replace('\\"', '"').replace('"', '\\"')
+    
+    return s[:start_idx] + query_val + s[end_idx:]
 
 @app.middleware("http")
 async def fix_malformed_json(request: Request, call_next):
