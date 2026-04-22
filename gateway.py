@@ -82,12 +82,13 @@ class QueryPayload(BaseModel):
     assets: list[str] = []
 
 def get_active_challenge() -> str:
-    # Intuitively find the most recently modified agent.py
-    agents = glob.glob("challenges/*/agent.py")
-    if not agents:
-        return "01"
-    latest_agent = max(agents, key=os.path.getmtime)
-    return os.path.basename(os.path.dirname(latest_agent))
+    # Intuitively find the highest numbered challenge that has been implemented
+    agents = sorted(glob.glob("challenges/*/agent.py"), reverse=True)
+    for agent_file in agents:
+        with open(agent_file, "r", encoding="utf-8") as f:
+            if "def run(" in f.read():
+                return os.path.basename(os.path.dirname(agent_file))
+    return "01"
 
 ACTIVE_CHALLENGE = os.environ.get("ACTIVE_CHALLENGE") or get_active_challenge()
 
