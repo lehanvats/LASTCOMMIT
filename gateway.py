@@ -13,6 +13,7 @@ import importlib
 import os
 import json
 import re
+import glob
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
@@ -80,8 +81,15 @@ class QueryPayload(BaseModel):
     query: str
     assets: list[str] = []
 
+def get_active_challenge() -> str:
+    # Intuitively find the most recently modified agent.py
+    agents = glob.glob("challenges/*/agent.py")
+    if not agents:
+        return "01"
+    latest_agent = max(agents, key=os.path.getmtime)
+    return os.path.basename(os.path.dirname(latest_agent))
 
-ACTIVE_CHALLENGE = os.environ.get("ACTIVE_CHALLENGE", "05")
+ACTIVE_CHALLENGE = os.environ.get("ACTIVE_CHALLENGE") or get_active_challenge()
 
 
 # ── Health check ─────────────────────────────────────
