@@ -38,3 +38,5 @@ coverage.xml
 
 # Render / deployment artifacts
 .render-buildpacks.json
+
+scratch/test_similarity.py
