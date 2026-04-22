@@ -24,33 +24,54 @@ load_dotenv()
 
 app = FastAPI(title="LastCommit Agent Gateway")
 
-def fix_payload(s: str) -> str:
-    # 1. Fix trailing commas in arrays/objects: [1, 2, ] -> [1, 2]
-    s = re.sub(r',\s*([\]}])', r'\1', s)
-    
-    # 2. Fix unescaped quotes and raw newlines in "query"
+def _fix_trailing_commas(s: str) -> str:
+    """Remove trailing commas in JSON arrays/objects: [1, 2, ] -> [1, 2]"""
+    return re.sub(r',\s*([\]}])', r'\1', s)
+
+def _fix_query_quotes(s: str) -> str:
+    """Re-escape any unescaped double-quotes and raw newlines inside the query string value."""
     match_start = re.search(r'"query"\s*:\s*"', s)
     if not match_start:
         return s
     start_idx = match_start.end()
     
-    # Find the boundary of the query value
-    # It ends at either ", "assets" or the final " before }
-    boundary_match = re.search(r'"\s*,\s*"assets"|"\s*}', s[start_idx:])
-    if not boundary_match:
-        return s
-    
-    end_idx = start_idx + boundary_match.start()
+    # Boundary: the closing quote of the query value, before ", "assets" or "}"
+    # Scan conservatively: if "assets" key exists, anchor against it
+    assets_match = re.search(r'",\s*"assets"\s*:', s)
+    if assets_match:
+        end_idx = assets_match.start()
+    else:
+        # Fall back to last " before }
+        last_brace = s.rfind('}')
+        last_quote = s.rfind('"', start_idx, last_brace)
+        if last_quote == -1 or s[last_quote+1:last_brace].strip():
+            return s
+        end_idx = last_quote
+
     query_val = s[start_idx:end_idx]
-    
-    # Escape raw newlines and tabs which are invalid in JSON strings
+    # Escape raw newlines/tabs
     query_val = query_val.replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
-    
-    # Escape unescaped double quotes
-    # Normalize by converting all \" to " then escaping all " to \"
+    # Re-escape quotes: unescape then re-escape so we start from a clean slate
     query_val = query_val.replace('\\"', '"').replace('"', '\\"')
-    
     return s[:start_idx] + query_val + s[end_idx:]
+
+def fix_payload(s: str) -> str:
+    """
+    Multi-pass JSON repair. Tries least-invasive fixes first.
+    Pass 1: trailing commas only
+    Pass 2: trailing commas + re-escape query string quotes/newlines
+    """
+    # Pass 1 — trailing commas only (most common eval-engine bug)
+    attempt1 = _fix_trailing_commas(s)
+    try:
+        json.loads(attempt1)
+        return attempt1
+    except json.JSONDecodeError:
+        pass
+    
+    # Pass 2 — also fix unescaped quotes in the query value
+    attempt2 = _fix_query_quotes(attempt1)
+    return attempt2
 
 @app.middleware("http")
 async def fix_malformed_json(request: Request, call_next):
@@ -60,21 +81,16 @@ async def fix_malformed_json(request: Request, call_next):
             body_str = body.decode("utf-8")
             try:
                 json.loads(body_str)
-                # It's valid, restore body
+                # Already valid — pass through untouched
                 async def receive():
                     return {"type": "http.request", "body": body}
                 request._receive = receive
             except json.JSONDecodeError:
                 fixed_body_str = fix_payload(body_str)
-                try:
-                    json.loads(fixed_body_str)
-                    async def receive():
-                        return {"type": "http.request", "body": fixed_body_str.encode("utf-8")}
-                    request._receive = receive
-                except json.JSONDecodeError:
-                    async def receive():
-                        return {"type": "http.request", "body": body}
-                    request._receive = receive
+                fixed_body = fixed_body_str.encode("utf-8")
+                async def receive():
+                    return {"type": "http.request", "body": fixed_body}
+                request._receive = receive
     return await call_next(request)
 
 
