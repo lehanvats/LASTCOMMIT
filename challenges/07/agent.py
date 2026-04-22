@@ -19,10 +19,10 @@ Follow the rules step-by-step mentally to calculate the final result.
 RULES FOR YOUR OUTPUT:
 - Output ONLY the final result. No explanation, no filler words, no preamble.
 - Do NOT output your step-by-step thoughts.
-- If the final result is a word (like "FIZZ"), output exactly that word.
+- If the final result is a word (like FIZZ), output exactly that word WITHOUT surrounding quotes.
 - If the final result is a number, output just the number.
 - Ensure the answer exactly matches the expected format.
-- No leading or trailing punctuations.
+- No leading or trailing punctuations or quotation marks.
 """
 
 
@@ -30,6 +30,8 @@ def _clean(text: str) -> str:
     text = text.strip()
     text = re.sub(r"^(A|Answer|Result|Output):\s*", "", text, flags=re.IGNORECASE)
     text = text.rstrip(".")
+    # Strip any accidental surrounding quotes
+    text = text.strip('"\'')
     return text.strip()
 
 

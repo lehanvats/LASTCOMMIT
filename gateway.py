@@ -11,15 +11,69 @@ We respond with:
 
 import importlib
 import os
+import json
+import re
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 load_dotenv()
 
 app = FastAPI(title="LastCommit Agent Gateway")
+
+def fix_payload(s: str) -> str:
+    match_start = re.search(r'"query"\s*:\s*"', s)
+    if not match_start:
+        return s
+    start_idx = match_start.end()
+    
+    if '"assets"' in s[start_idx:]:
+        match_end = re.search(r'"\s*,\s*"assets"', s[start_idx:])
+        if match_end:
+            end_idx = start_idx + match_end.start()
+            query_val = s[start_idx:end_idx]
+            query_val = query_val.replace('\\"', '"').replace('"', '\\"')
+            return s[:start_idx] + query_val + s[end_idx:]
+            
+    match_end = re.search(r'"\s*}', s[start_idx:])
+    if match_end:
+        last_brace = s.rfind('}')
+        if last_brace != -1:
+            last_quote = s.rfind('"', start_idx, last_brace)
+            # Make sure there are only spaces between last_quote and last_brace
+            if s[last_quote+1:last_brace].strip() == '':
+                query_val = s[start_idx:last_quote]
+                query_val = query_val.replace('\\"', '"').replace('"', '\\"')
+                return s[:start_idx] + query_val + s[last_quote:]
+                
+    return s
+
+@app.middleware("http")
+async def fix_malformed_json(request: Request, call_next):
+    if request.method in ("POST", "PUT", "PATCH"):
+        body = await request.body()
+        if body:
+            body_str = body.decode("utf-8")
+            try:
+                json.loads(body_str)
+                # It's valid, restore body
+                async def receive():
+                    return {"type": "http.request", "body": body}
+                request._receive = receive
+            except json.JSONDecodeError:
+                fixed_body_str = fix_payload(body_str)
+                try:
+                    json.loads(fixed_body_str)
+                    async def receive():
+                        return {"type": "http.request", "body": fixed_body_str.encode("utf-8")}
+                    request._receive = receive
+                except json.JSONDecodeError:
+                    async def receive():
+                        return {"type": "http.request", "body": body}
+                    request._receive = receive
+    return await call_next(request)
 
 
 class QueryPayload(BaseModel):
