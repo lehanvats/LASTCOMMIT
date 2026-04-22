@@ -82,15 +82,13 @@ async def fix_malformed_json(request: Request, call_next):
             try:
                 json.loads(body_str)
                 # Already valid — pass through untouched
-                async def receive():
-                    return {"type": "http.request", "body": body}
-                request._receive = receive
             except json.JSONDecodeError:
                 fixed_body_str = fix_payload(body_str)
                 fixed_body = fixed_body_str.encode("utf-8")
-                async def receive():
-                    return {"type": "http.request", "body": fixed_body}
-                request._receive = receive
+                # Starlette caches the body in request._body after the first read.
+                # We must update _body directly — overriding _receive has no effect
+                # because FastAPI reads from the cache, not the receive callable.
+                request._body = fixed_body
     return await call_next(request)
 
 
