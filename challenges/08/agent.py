@@ -38,7 +38,7 @@ def run(query: str, assets: list[str] | None = None) -> str:
     client = _get_client()
 
     response = client.chat.completions.create(
-        model=os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b"),
+        model=os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile"),
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user",   "content": query},
